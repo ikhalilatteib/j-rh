@@ -1,0 +1,33 @@
+{
+    "name": "ikay/j-rh",
+    "description": "Employee HR module for Filament v4 - Manage employees, salaries, and advances",
+    "type": "library",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Ikay",
+            "email": "hi@ikay.tech"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "filament/filament": "^4.0",
+        "illuminate/support": "^12.0",
+        "barryvdh/laravel-dompdf": "^3.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ikay\\JRh\\": "src/",
+            "Ikay\\JRh\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ikay\\JRh\\JRhServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
