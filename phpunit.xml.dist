@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    J-RH Package Tests
+
+    Since this package requires a full Laravel + Filament application context,
+    tests should be run from the host application:
+
+    php artisan test tests/Feature/EmployeeTest.php tests/Feature/SalaryTest.php tests/Feature/AdvanceTest.php
+
+    Copy the test stubs from stubs/tests/ into your application's tests/Feature/ directory.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true">
+    <testsuites>
+        <testsuite name="Feature">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

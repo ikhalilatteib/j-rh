@@ -44,6 +44,10 @@ class JRhServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../resources/views' => resource_path('views/vendor/j-rh'),
             ], 'j-rh-views');
+
+            $this->publishes([
+                __DIR__.'/../stubs/tests' => base_path('tests/Feature'),
+            ], 'j-rh-tests');
         }
     }
 }
