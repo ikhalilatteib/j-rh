@@ -2,15 +2,43 @@
 
 namespace Ikay\JRh\Filament\Resources\AdvanceResource\Pages;
 
+use Filament\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Ikay\JRh\Enums\AdvanceStatusEnum;
 use Ikay\JRh\Filament\Resources\AdvanceResource;
+use Ikay\JRh\Models\Advance;
 
 class ViewAdvance extends ViewRecord
 {
     protected static string $resource = AdvanceResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('approve')
+                ->label(__('j-rh::j-rh.approve'))
+                ->requiresConfirmation()
+                ->color('success')
+                ->icon('heroicon-o-check-circle')
+                ->action(fn (Advance $record) => $record->update([
+                    'status' => AdvanceStatusEnum::Approved,
+                ]))
+                ->visible(fn (Advance $record): bool => $record->status === AdvanceStatusEnum::Pending && auth()->user()->can('Approve:Advance')),
+
+            Action::make('reject')
+                ->label(__('j-rh::j-rh.reject'))
+                ->requiresConfirmation()
+                ->color('danger')
+                ->icon('heroicon-o-x-circle')
+                ->action(fn (Advance $record) => $record->update([
+                    'status' => AdvanceStatusEnum::Rejected,
+                ]))
+                ->visible(fn (Advance $record): bool => $record->status === AdvanceStatusEnum::Pending && auth()->user()->can('Reject:Advance')),
+        ];
+    }
 
     public function infolist(Schema $schema): Schema
     {

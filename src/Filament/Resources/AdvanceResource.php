@@ -124,6 +124,7 @@ class AdvanceResource extends Resource
                     ->preload(),
             ])
             ->recordActions([
+                ViewAction::make(),
                 ActionGroup::make([
                     Action::make('approve')
                         ->label(__('j-rh::j-rh.approve'))
@@ -145,7 +146,6 @@ class AdvanceResource extends Resource
                         ]))
                         ->visible(fn (): bool => auth()->user()->can('Reject:Advance')),
 
-                    ViewAction::make(),
                     EditAction::make()
                         ->color('warning'),
                     DeleteAction::make(),

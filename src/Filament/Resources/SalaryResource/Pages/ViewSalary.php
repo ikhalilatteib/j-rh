@@ -9,7 +9,9 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Ikay\JRh\Enums\SalaryStatusEnum;
 use Ikay\JRh\Filament\Resources\SalaryResource;
+use Ikay\JRh\Models\Salary;
 
 class ViewSalary extends ViewRecord
 {
@@ -80,6 +82,27 @@ class ViewSalary extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('mark_paid')
+                ->label(__('j-rh::j-rh.mark_paid'))
+                ->requiresConfirmation()
+                ->color('success')
+                ->icon('heroicon-o-check-circle')
+                ->action(fn (Salary $record) => $record->update([
+                    'status' => SalaryStatusEnum::Paid,
+                    'paid_at' => now(),
+                ]))
+                ->visible(fn (Salary $record): bool => $record->status === SalaryStatusEnum::Pending && auth()->user()->can('Pay:Salary')),
+
+            Action::make('cancel')
+                ->label(__('j-rh::j-rh.cancel'))
+                ->requiresConfirmation()
+                ->color('danger')
+                ->icon('heroicon-o-x-circle')
+                ->action(fn (Salary $record) => $record->update([
+                    'status' => SalaryStatusEnum::Cancelled,
+                ]))
+                ->visible(fn (Salary $record): bool => $record->status === SalaryStatusEnum::Pending && auth()->user()->can('Cancel:Salary')),
+
             Action::make('downloadBulletin')
                 ->label(__('j-rh::j-rh.download_bulletin'))
                 ->icon('heroicon-o-arrow-down-tray')

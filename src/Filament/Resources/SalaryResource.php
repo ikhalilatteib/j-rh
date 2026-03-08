@@ -231,6 +231,7 @@ class SalaryResource extends Resource
                     ->preload(),
             ])
             ->recordActions([
+                ViewAction::make(),
                 ActionGroup::make([
                     Action::make('mark_paid')
                         ->label(__('j-rh::j-rh.mark_paid'))
@@ -253,7 +254,6 @@ class SalaryResource extends Resource
                         ]))
                         ->visible(fn (): bool => auth()->user()->can('Cancel:Salary')),
 
-                    ViewAction::make(),
                     EditAction::make()
                         ->color('warning'),
                     DeleteAction::make(),
