@@ -7,7 +7,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -55,6 +55,7 @@ class EmployeeResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
                 Section::make(__('j-rh::j-rh.personal_information'))
                     ->schema([
@@ -84,8 +85,9 @@ class EmployeeResource extends Resource
                         TextInput::make('national_id')
                             ->label(__('j-rh::j-rh.national_id'))
                             ->maxLength(255),
-                        FileUpload::make('photo')
+                        SpatieMediaLibraryFileUpload::make('photo')
                             ->label(__('j-rh::j-rh.photo'))
+                            ->collection('photo')
                             ->image()
                             ->avatar()
                             ->columnSpanFull(),
@@ -140,16 +142,6 @@ class EmployeeResource extends Resource
                     ])
                     ->columns(2),
 
-                Section::make(__('j-rh::j-rh.system_link'))
-                    ->schema([
-                        Select::make('user_id')
-                            ->label(__('j-rh::j-rh.linked_user'))
-                            ->relationship('user', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->nullable(),
-                    ])
-                    ->collapsed(),
             ]);
     }
 

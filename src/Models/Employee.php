@@ -12,12 +12,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Employee extends Model
+class Employee extends Model implements HasMedia
 {
     /** @use HasFactory<EmployeeFactory> */
     use HasFactory;
 
+    use InteractsWithMedia;
     use SoftDeletes;
 
     protected $fillable = [
@@ -40,7 +43,6 @@ class Employee extends Model
         'marital_status',
         'nationality',
         'status',
-        'photo',
         'user_id',
     ];
 
