@@ -1,4 +1,4 @@
-# J-RH - Employee HR Module for Filament v4
+# J-RH - Employee HR Module for Filament
 
 A reusable Laravel Filament v4 package for managing employees, salaries, and advances. Designed to replace direct User-based salary/advance tracking with a dedicated Employee model.
 
