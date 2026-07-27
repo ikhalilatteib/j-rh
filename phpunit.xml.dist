@@ -1,21 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    J-RH Package Tests
+    J-RH package tests.
 
-    Since this package requires a full Laravel + Filament application context,
-    tests should be run from the host application:
+    These run standalone against orchestra/testbench:
 
-    php artisan test tests/Feature/EmployeeTest.php tests/Feature/SalaryTest.php tests/Feature/AdvanceTest.php
+        composer install && composer test
 
-    Copy the test stubs from stubs/tests/ into your application's tests/Feature/ directory.
+    filament/filament is only a suggested dependency, so a plain `composer install` gives a
+    Filament-free environment: the Core suite proves the domain works without it and the
+    Filament suite skips itself. To exercise the admin layer too, add filament/filament ^4.0
+    and barryvdh/laravel-dompdf ^3.1 as dev dependencies, then run the suite again.
+
+    stubs/tests/ still holds the publishable, host-application Filament tests.
 -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
-         colors="true">
+         colors="true"
+         failOnWarning="true"
+         failOnRisky="true"
+         cacheDirectory=".phpunit.cache">
     <testsuites>
-        <testsuite name="Feature">
-            <directory>tests</directory>
+        <testsuite name="Core">
+            <directory>tests/Core</directory>
+        </testsuite>
+        <testsuite name="Filament">
+            <directory>tests/Filament</directory>
         </testsuite>
     </testsuites>
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+        <exclude>
+            <directory>src/Filament</directory>
+        </exclude>
+    </source>
 </phpunit>
