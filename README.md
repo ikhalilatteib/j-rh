@@ -1,23 +1,49 @@
-# J-RH - Employee HR Module for Filament
+# J-RH - Employee HR Module for Laravel
 
-A reusable Laravel Filament v4 package for managing employees, salaries, and advances. Designed to replace direct User-based salary/advance tracking with a dedicated Employee model.
+A reusable Laravel package for managing employees, salaries, and advances. Designed to replace direct User-based salary/advance tracking with a dedicated Employee model.
+
+The package is split into two layers:
+
+| Layer | Contents | Needs Filament? |
+|-------|----------|-----------------|
+| **Core** | `src/Models`, `src/Enums`, `src/Policies`, `src/Traits`, migrations, factories, config, translations, views | No |
+| **Admin layer** | `src/Filament/**`, `src/JRhPlugin.php` | Yes |
+
+`filament/filament` and `barryvdh/laravel-dompdf` are **suggested**, not required. An application without a Filament panel can install this package for the Eloquent core alone; an application with a panel keeps registering `JRhPlugin` exactly as before.
 
 ## Features
 
 - **Employee Management** - Full CRUD with auto-generated IDs (EMP-0001), extended HR fields (position, department, contract type, etc.)
 - **Salary Management** - Monthly salary processing with base salary, primes, advance deductions, and net salary calculation
 - **Advance Management** - Employee advance requests with approval workflow and automatic outstanding balance tracking
-- **PDF Salary Bulletins** - Generate downloadable salary bulletins via DomPDF
-- **Filament Shield Compatible** - Permissions auto-register with `BezhanSalleh/FilamentShield`
+- **PDF Salary Bulletins** - Generate downloadable salary bulletins via DomPDF *(admin layer)*
+- **Filament Shield Compatible** - Permissions auto-register with `BezhanSalleh/FilamentShield` *(admin layer)*
 - **Multi-language** - French and Arabic translations included
 - **User Linking** - Optionally link employees to app users for authentication
 
 ## Requirements
 
+### Core
+
 - PHP 8.2+
-- Laravel 12+
-- Filament v4
-- barryvdh/laravel-dompdf ^3.1
+- Laravel 12+ (`illuminate/support`, `illuminate/database`)
+- `spatie/laravel-medialibrary` ^11.0 - the `Employee` model implements `HasMedia` for its photo
+
+### Admin layer (optional)
+
+- `filament/filament` ^4.0 or ^5.0
+- `barryvdh/laravel-dompdf` ^3.1 - salary bulletin PDFs
+
+Install them in the consuming application; this package no longer pulls them in.
+
+## Schema owned by the host application
+
+The package creates the `employees` table only. It expects the application to already own:
+
+- `users` - the employees migration adds a nullable `user_id` FK to it
+- `salaries` and `advances` - migrations `000002`/`000003` only *re-key* existing tables from `user_id` to `employee_id`, and no-op when there is nothing to convert
+
+A brand-new consumer therefore has to create `salaries` and `advances` itself. See `tests/TestCase.php` for the expected columns.
 
 ## Installation
 
@@ -25,6 +51,12 @@ A reusable Laravel Filament v4 package for managing employees, salaries, and adv
 
 ```bash
 composer require ikay/j-rh
+```
+
+Using the Filament admin layer as well:
+
+```bash
+composer require ikay/j-rh filament/filament barryvdh/laravel-dompdf
 ```
 
 ### As a Local Package
@@ -56,7 +88,9 @@ php artisan migrate
 
 ## Setup
 
-### 1. Register the Filament Plugin
+### 1. Register the Filament Plugin *(admin layer only)*
+
+Skip this step entirely if the application has no Filament panel; the models, enums and policies are registered by `JRhServiceProvider` on their own.
 
 In your `AdminPanelProvider.php`:
 
@@ -160,12 +194,34 @@ These migrations are safe to run on fresh databases (they skip if `user_id` colu
 | marital_status | enum | Single / Married / Divorced / Widowed |
 | nationality | string | Nationality |
 | status | enum | Active / Inactive / Suspended / OnLeave |
-| photo | string | Photo path |
+| photo | media | Spatie media library collection (the `photo` column was dropped in `000004`) |
 | user_id | FK | Optional link to User |
+
+## How the enums stay Filament-aware without requiring Filament
+
+`Ikay\JRh\Enums\*` implement `Filament\Support\Contracts\HasLabel`, `HasColor` and `HasIcon` so Filament renders translated labels, badge colours and icons for them. Those interfaces live in `filament/support`, which pulls in Livewire.
+
+`compat/filament-contracts.php` (a Composer `files` autoload entry) declares minimal stand-ins for exactly those three interfaces, **and only when Filament is not installed**. When Filament is present its real contracts win and nothing changes. `tests/Core/CompatShimTest.php` asserts both directions, and `tests/Core/FilamentBoundaryTest.php` fails the build if any core file ever names another Filament or DomPDF symbol.
 
 ## Testing
 
-The package includes factories for all models. In your test files:
+Standalone, against `orchestra/testbench`:
+
+```bash
+composer install   # Filament-free, since it is only suggested
+composer test
+```
+
+The `Filament` suite skips itself when Filament is absent. To exercise the admin layer too:
+
+```bash
+composer require --dev "filament/filament:^4.0" "barryvdh/laravel-dompdf:^3.1"
+composer test
+```
+
+CI runs both combinations.
+
+The package also includes factories for all models. In your own application's test files:
 
 ```php
 use Ikay\JRh\Models\Employee;
@@ -177,9 +233,10 @@ $salary = Salary::factory()->create(['employee_id' => $employee->id]);
 $advance = Advance::factory()->approved()->create(['employee_id' => $employee->id]);
 ```
 
-Run the package tests:
+Publishable host-application tests for the Filament layer still live in `stubs/tests/`:
 
 ```bash
+php artisan vendor:publish --tag=j-rh-tests
 php artisan test --compact tests/Feature/EmployeeTest.php tests/Feature/SalaryTest.php tests/Feature/AdvanceTest.php
 ```
 

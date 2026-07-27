@@ -1,0 +1,72 @@
+name: tests
+
+on:
+  push:
+    branches: [master, 'split/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  filament-free:
+    name: core without Filament (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.4']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite, gd, exif, iconv
+          coverage: none
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Assert Filament really is absent
+        run: |
+          if composer show --name-only 2>/dev/null | grep -qE '^(filament/|barryvdh/laravel-dompdf)'; then
+            echo "::error::A Filament or DomPDF package was installed; the core is supposed to resolve without them."
+            composer show --name-only | grep -E '^(filament/|barryvdh/)'
+            exit 1
+          fi
+          echo "No filament/* and no barryvdh/laravel-dompdf in the dependency tree."
+
+      - name: Run the test suite
+        run: vendor/bin/phpunit
+
+  with-filament:
+    name: admin layer with Filament ${{ matrix.filament }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        filament: ['^4.0']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite, gd, exif, iconv
+          coverage: none
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Add the optional admin-layer dependencies
+        run: composer require --dev "filament/filament:${{ matrix.filament }}" "barryvdh/laravel-dompdf:^3.1" --prefer-dist --no-interaction --no-progress
+
+      - name: Run the test suite
+        run: vendor/bin/phpunit
